@@ -270,6 +270,7 @@ onMounted(() => {
   store.dispatch('attributes/get');
   store.dispatch('customViews/get', 'conversation');
   store.dispatch('customViews/get', 'contact');
+  store.dispatch('dashboardApps/get'); // Jarpus: custom Apps menu
 });
 
 watch([accountId, hasConversationUnreadCounts], fetchConversationUnreadCounts, {
@@ -375,6 +376,26 @@ const newReportRoutes = () => [
 ];
 
 const reportRoutes = computed(() => newReportRoutes());
+
+// Jarpus: every Dashboard App also gets its own item in the sidebar "Apps" menu
+const dashboardApps = useMapGetter('dashboardApps/getRecords');
+const customAppsMenu = computed(() => {
+  const apps = dashboardApps.value || [];
+  if (!apps.length) return [];
+  return [
+    {
+      name: 'Custom Apps',
+      label: 'Apps',
+      icon: 'i-lucide-layout-grid',
+      activeOn: ['custom_app_view'],
+      children: apps.map(app => ({
+        name: `custom-app-${app.id}`,
+        label: app.title,
+        to: accountScopedRoute('custom_app_view', { appId: app.id }),
+      })),
+    },
+  ];
+});
 
 const menuItems = computed(() => {
   return [
@@ -813,6 +834,7 @@ const menuItems = computed(() => {
         },
       ],
     },
+    ...customAppsMenu.value,
     {
       name: 'Settings',
       label: t('SIDEBAR.SETTINGS'),
